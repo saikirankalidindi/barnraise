@@ -1,0 +1,99 @@
+{
+  "model": "sonnet",
+  "passed": 5,
+  "of": 5,
+  "results": [
+    {
+      "prompt": "blog",
+      "repo": "/tmp/bp-blog-t6sb43d9",
+      "seconds": 60,
+      "cost_usd": 0.31,
+      "proposals_rejected": 0,
+      "valid": true,
+      "tasks": 4,
+      "contracts": 2,
+      "parallel_pairs": 2,
+      "peak_parallel": 2,
+      "max_speedup": 1.08,
+      "critical_path": [
+        "T0",
+        "T1",
+        "T2",
+        "T3"
+      ]
+    },
+    {
+      "prompt": "chat-app",
+      "repo": "/tmp/bp-chat-app-2ibjp51w",
+      "seconds": 47,
+      "cost_usd": 0.293,
+      "proposals_rejected": 0,
+      "valid": true,
+      "tasks": 4,
+      "contracts": 1,
+      "parallel_pairs": 1,
+      "peak_parallel": 2,
+      "max_speedup": 1.5,
+      "critical_path": [
+        "T0",
+        "T1",
+        "T3"
+      ]
+    },
+    {
+      "prompt": "cli-tool",
+      "repo": "/tmp/bp-cli-tool-imvtb0ge",
+      "seconds": 34,
+      "cost_usd": 0.312,
+      "proposals_rejected": 0,
+      "valid": true,
+      "tasks": 5,
+      "contracts": 3,
+      "parallel_pairs": 3,
+      "peak_parallel": 3,
+      "max_speedup": 1.4,
+      "critical_path": [
+        "T0",
+        "T2",
+        "T4"
+      ]
+    },
+    {
+      "prompt": "rest-service",
+      "repo": "/tmp/bp-rest-service-9hvdjt88",
+      "seconds": 48,
+      "cost_usd": 0.301,
+      "proposals_rejected": 0,
+      "valid": true,
+      "tasks": 4,
+      "contracts": 2,
+      "parallel_pairs": 1,
+      "peak_parallel": 2,
+      "max_speedup": 1.4,
+      "critical_path": [
+        "T0",
+        "T1",
+        "T3"
+      ]
+    },
+    {
+      "prompt": "task-manager",
+      "repo": "/tmp/bp-task-manager-lh_ec5lu",
+      "seconds": 38,
+      "cost_usd": 0.307,
+      "proposals_rejected": 0,
+      "valid": true,
+      "tasks": 5,
+      "contracts": 1,
+      "parallel_pairs": 3,
+      "peak_parallel": 3,
+      "max_speedup": 1.33,
+      "critical_path": [
+        "T0",
+        "T1",
+        "T2",
+        "T4"
+      ]
+    }
+  ]
+}

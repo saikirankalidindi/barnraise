@@ -1,0 +1,1 @@
+A URL shortener REST service in Go: create short links with a custom or random slug, redirect from the slug, record clicks and report click counts per day, require an API key to create links, and store everything in SQLite. Standard library net/http routing. Table-driven tests with net/http/httptest.

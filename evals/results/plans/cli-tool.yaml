@@ -1,0 +1,121 @@
+# Blueprint plan. Edit this file, then run /blueprint:plan --sync to validate it.
+# after: completion dependencies (start once those tasks are merged).
+# consumes: contract dependencies (start once the producing task publishes the contract).
+prompt: 'Rust CLI logq: query JSON-lines logs; filter by level/time, message search, group-count, table
+  or JSON output.'
+checks:
+- cargo build
+- cargo test
+- cargo clippy --all-targets -- -D warnings
+- cargo fmt --check
+contracts:
+- name: record-api
+  kind: types
+  description: 'Rust module src/record.rs: pub struct Record { pub raw: serde_json::Value } with helpers
+    level() -> Option<&str>, timestamp() -> Option<chrono::DateTime<Utc>> (field ''timestamp'' or ''time''
+    RFC3339), message() -> Option<&str>, get_field(&str)->Option<String> (stringified top-level field);
+    pub fn parse_line(&str)->Result<Record,anyhow::Error>.'
+- name: query-api
+  kind: types
+  description: 'Rust module src/query.rs: pub struct Filter { levels: Vec<String>, since: Option<DateTime<Utc>>,
+    until: Option<DateTime<Utc>>, search: Option<String> } with fn matches(&self,&Record)->bool (case-insensitive
+    level and substring search on message); pub fn group_count(&[Record], field:&str)->Vec<(String,usize)>
+    sorted by count desc then key.'
+- name: output-api
+  kind: types
+  description: 'Rust module src/output.rs: pub fn render_table(headers:&[String], rows:&[Vec<String>])->String
+    (aligned columns); pub fn render_records_json(&[Record])->String; pub fn render_counts_json(&[(String,usize)])->String;
+    pub fn render_records_table(&[Record])->String (columns timestamp, level, message).'
+tasks:
+- key: T0
+  title: Scaffold Cargo project with stubs
+  description: 'Create Cargo.toml (package logq, edition 2021, deps clap 4 with derive, serde_json, chrono
+    with serde, anyhow; dev-deps assert_cmd, predicates, tempfile), Cargo.lock, src/main.rs declaring
+    mods record, query, output, cli (each as a minimal compilable stub file with the signatures from the
+    contracts, bodies using todo!() or trivial), and an empty src/cli.rs. Keep main.rs: mod declarations
+    and a main that calls cli::run() (stub returning Ok). Ensure cargo build, clippy and fmt pass. Also
+    add tests/data/sample.jsonl (about 10 lines with timestamp, level, message, service fields, varied
+    levels/times/services) .'
+  acceptance:
+  - cargo build
+  - cargo fmt --check
+  owns:
+  - Cargo.toml
+  - Cargo.lock
+  - src/main.rs
+  - src/lib.rs
+  - src/record.rs
+  - src/query.rs
+  - src/output.rs
+  - src/cli.rs
+  - tests/data/**
+  produces:
+  - record-api
+  - query-api
+  - output-api
+  size: S
+- key: T1
+  title: Implement record parsing
+  description: 'Implement src/record.rs per record-api contract with unit tests in a #[cfg(test)] module
+    in the same file. Only edit src/record.rs.'
+  acceptance:
+  - 'cargo test record::'
+  owns:
+  - src/record.rs
+  after:
+  - T0
+  consumes:
+  - record-api
+  size: S
+- key: T2
+  title: Implement filter and group count
+  description: Implement src/query.rs per query-api contract with unit tests in the same file (level match,
+    time range, search, grouping, sort order). Only edit src/query.rs. Use Record from record-api.
+  acceptance:
+  - 'cargo test query::'
+  owns:
+  - src/query.rs
+  after:
+  - T0
+  consumes:
+  - record-api
+  - query-api
+  size: M
+- key: T3
+  title: Implement output rendering
+  description: Implement src/output.rs per output-api contract with unit tests in the same file (alignment,
+    JSON output). Only edit src/output.rs.
+  acceptance:
+  - 'cargo test output::'
+  owns:
+  - src/output.rs
+  after:
+  - T0
+  consumes:
+  - record-api
+  - output-api
+  size: S
+- key: T4
+  title: CLI wiring and integration tests
+  description: 'Implement src/cli.rs with clap derive: logq [FILES...] (or stdin if none/''-''), --level
+    (repeatable/comma), --since, --until (RFC3339), --search TEXT, --group-by FIELD, --format table|json
+    (default table), --limit N. Read lines, skip blank lines, warn to stderr on invalid lines, filter,
+    then print records or group counts via output module. Add tests/integration.rs using assert_cmd on
+    tests/data/sample.jsonl covering level filter, time range, search, group-by, json and table output,
+    invalid args exit code nonzero. Create extra fixtures in tests/fixtures/ if needed. Do not edit other
+    modules; if they are still stubs, rely on them being implemented by merge.'
+  acceptance:
+  - cargo test --test integration
+  owns:
+  - src/cli.rs
+  - tests/integration.rs
+  - tests/fixtures/**
+  after:
+  - T1
+  - T2
+  - T3
+  consumes:
+  - record-api
+  - query-api
+  - output-api
+  size: M

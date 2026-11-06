@@ -1,0 +1,81 @@
+{
+  "model": "sonnet",
+  "agent_limit": 3,
+  "blueprint": {
+    "repo": "/tmp/bp-e2e-blueprint-htzzqeyz",
+    "wall_s": 139,
+    "phases_s": {
+      "init": 8,
+      "plan": 29,
+      "run": 102
+    },
+    "driver_cost_usd": 1.121,
+    "worker_spend_estimate_usd": 0.746,
+    "tasks": {
+      "T2": [
+        "done",
+        0
+      ],
+      "T4": [
+        "done",
+        0
+      ],
+      "T3": [
+        "done",
+        0
+      ],
+      "T1": [
+        "done",
+        0
+      ],
+      "T0": [
+        "done",
+        0
+      ]
+    },
+    "merge_outcomes": [
+      [
+        "T0",
+        "merged"
+      ],
+      [
+        "T1",
+        "merged"
+      ],
+      [
+        "T3",
+        "merged"
+      ],
+      [
+        "T2",
+        "merged"
+      ],
+      [
+        "T4",
+        "merged"
+      ]
+    ],
+    "run_status": "done",
+    "verify": {
+      "ref": "blueprint/integration",
+      "uv_sync_ok": true,
+      "pytest_ok": true,
+      "pytest_tail": "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n19 passed, 1 warning in 0.26s",
+      "files": 16,
+      "python_files": 10
+    }
+  },
+  "single_agent": {
+    "repo": "/tmp/bp-e2e-single-95pde12r",
+    "wall_s": 54,
+    "cost_usd": 0.217,
+    "verify": {
+      "ref": "HEAD",
+      "uv_sync_ok": true,
+      "pytest_ok": true,
+      "pytest_tail": "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n12 passed, 1 warning in 0.59s",
+      "files": 14,
+      "python_files": 7
+    }
+  }
+}

@@ -1,0 +1,46 @@
+[project]
+name = "barnraise"
+version = "0.1.0"
+description = "Barnraise MCP server: plan, scheduler, contracts, integrator"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=2.3.0",
+    "pyyaml>=6.0.3",
+]
+
+[project.scripts]
+barnraise-mcp = "barnraise.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/barnraise"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=1",
+    "ruff>=0.15",
+    "mypy>=1.19",
+    "types-pyyaml>=6.0.12.20261103",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "ASYNC"]
+# The formatter owns line length; long user-facing strings stay on one line.
+ignore = ["E501"]
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]

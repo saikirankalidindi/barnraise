@@ -1,0 +1,101 @@
+# Blueprint plan. Edit this file, then run /blueprint:plan --sync to validate it.
+# after: completion dependencies (start once those tasks are merged).
+# consumes: contract dependencies (start once the producing task publishes the contract).
+prompt: URL shortener REST service in Go with SQLite, stdlib net/http, API key auth, click stats per day.
+checks:
+- go vet ./...
+- go test ./...
+setup:
+- go mod download
+contracts:
+- name: store-api
+  kind: types
+  description: 'Go package internal/store: type Store (wraps *sql.DB), Open(path string) (*Store, error)
+    running migrations; schema tables links(slug TEXT PK, url TEXT, created_at) and clicks(id, slug, clicked_at);
+    methods CreateLink(ctx, slug, url string) error (returns ErrSlugTaken on duplicate), GetLink(ctx,
+    slug) (Link, error) (ErrNotFound), RecordClick(ctx, slug string, at time.Time) error, ClicksPerDay(ctx,
+    slug string) ([]DayCount, error) with DayCount{Day string ''YYYY-MM-DD''; Count int}. Also api_keys
+    table with ValidAPIKey(ctx, key string) (bool, error) and AddAPIKey(ctx, key string) error (store
+    keys hashed with sha256).'
+- name: http-api
+  kind: openapi
+  description: POST /links (header X-API-Key required; JSON {url, slug?} -> 201 {slug,url,short_url};
+    400 invalid url/slug, 401 missing/bad key, 409 slug taken); GET /{slug} -> 302 redirect with Location
+    and records click, 404 if unknown; GET /links/{slug}/stats (API key required) -> 200 {slug,total,days:[{day,count}]}.
+    Uses Go 1.22 ServeMux method+wildcard patterns. Handler constructed via api.NewHandler(s *store.Store)
+    http.Handler.
+tasks:
+- key: T0
+  title: Scaffold Go module and store skeleton
+  description: Create go.mod (module urlshortener, go 1.22+) with modernc.org/sqlite dependency, go.sum,
+    a placeholder cmd/server/main.go (package main with empty main), and internal/store/store.go declaring
+    the exported types/errors/method signatures of the store-api contract (Store, Link, DayCount, ErrNotFound,
+    ErrSlugTaken) with stub bodies returning errors, plus internal/api/api.go declaring NewHandler stub
+    returning http.NewServeMux(). Ensure `go build ./...` and `go mod tidy` work (blank import modernc.org/sqlite
+    in store.go so the dependency is retained).
+  acceptance:
+  - go build ./...
+  - go vet ./...
+  owns:
+  - go.mod
+  - go.sum
+  - cmd/server/main.go
+  - internal/store/store.go
+  - internal/api/api.go
+  produces:
+  - store-api
+  - http-api
+  size: S
+- key: T1
+  title: Implement SQLite store
+  description: 'Create internal/store/impl.go (replace stub logic: T0 stubs live in store.go, so T1 owns
+    store.go edits only through the file internal/store/sqlite.go; instead implement by editing internal/store/store.go).
+    Implement Open with schema migration (CREATE TABLE IF NOT EXISTS, foreign pragmas, SetMaxOpenConns(1)
+    for :memory:), CreateLink, GetLink, RecordClick, ClicksPerDay (GROUP BY date(clicked_at) ordered ascending),
+    AddAPIKey, ValidAPIKey (sha256 hex hash). Map unique violations to ErrSlugTaken. Write table-driven
+    tests in internal/store/store_test.go using a temp-file or :memory: DB.'
+  acceptance:
+  - go test ./internal/store/...
+  owns:
+  - internal/store/**
+  after:
+  - T0
+  consumes:
+  - store-api
+  size: M
+- key: T2
+  title: Implement HTTP handlers
+  description: Implement internal/api (api.go, handlers.go, middleware.go) per http-api contract using
+    stdlib net/http ServeMux patterns ('POST /links', 'GET /links/{slug}/stats', 'GET /{slug}'). API-key
+    middleware reads X-API-Key and calls store.ValidAPIKey. Validate URL (http/https with host) and custom
+    slug (^[A-Za-z0-9_-]{3,32}$); generate random 7-char base62 slug via crypto/rand, retrying on ErrSlugTaken.
+    short_url built from request Host. Write table-driven httptest tests in internal/api/api_test.go using
+    a fake in-memory implementation of a small local interface (define interface in api package covering
+    the store methods used, so tests do not need the real SQLite store); NewHandler accepts that interface
+    which *store.Store satisfies.
+  acceptance:
+  - go test ./internal/api/...
+  owns:
+  - internal/api/**
+  after:
+  - T0
+  consumes:
+  - store-api
+  - http-api
+  size: M
+- key: T3
+  title: Server main and end-to-end tests
+  description: 'Implement cmd/server/main.go: flags/env (ADDR default :8080, DB_PATH default shortener.db,
+    API_KEY env to seed an API key via AddAPIKey, and a -genkey option optional), open store, serve api.NewHandler
+    with graceful shutdown. Add e2e test in cmd/server/e2e_test.go using httptest.NewServer with real
+    store on a temp DB: create link with key, reject without key, redirect (client not following redirects),
+    stats show clicks per day, duplicate slug 409. Add a short README.md.'
+  acceptance:
+  - go test ./cmd/server/...
+  owns:
+  - cmd/server/**
+  - README.md
+  after:
+  - T1
+  - T2
+  size: M

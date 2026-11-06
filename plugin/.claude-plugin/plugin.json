@@ -1,0 +1,17 @@
+{
+  "name": "barnraise",
+  "version": "0.1.0",
+  "description": "Contract-first parallel task orchestration: plan, run tasks in worktrees, verify, merge.",
+  "author": {
+    "name": "Saikiran Kalidindi"
+  },
+  "license": "MIT",
+  "keywords": [
+    "orchestration",
+    "worktrees",
+    "parallel",
+    "planning"
+  ],
+  "homepage": "https://github.com/saikirankalidindi/barnraise",
+  "repository": "https://github.com/saikirankalidindi/barnraise"
+}

@@ -1,0 +1,45 @@
+{
+  "killed_with": {
+    "T1": "in_progress",
+    "T0": "done",
+    "T3": "assigned",
+    "T2": "in_progress"
+  },
+  "commits_on_branches_at_kill": {
+    "T1": "0",
+    "T2": "0"
+  },
+  "recovered": [
+    "T1",
+    "T3",
+    "T2"
+  ],
+  "resume_wall_s": 37,
+  "final_tasks": {
+    "T1": [
+      "done",
+      0
+    ],
+    "T0": [
+      "done",
+      0
+    ],
+    "T3": [
+      "done",
+      0
+    ],
+    "T2": [
+      "done",
+      0
+    ]
+  },
+  "run_status": "done",
+  "verify": {
+    "ref": "blueprint/integration",
+    "uv_sync_ok": true,
+    "pytest_ok": true,
+    "pytest_tail": "warning: `VIRTUAL_ENV=~/.cache/uv/builds-v0/.tmpDq2G8u` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead\n.............                                                            [100%]\n13 passed in 0.02s",
+    "files": 11,
+    "python_files": 7
+  }
+}

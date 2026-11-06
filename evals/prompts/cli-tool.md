@@ -1,0 +1,1 @@
+A Rust command-line tool `logq` that queries JSON-lines log files: filter by level and time range, full-text search on the message field, count records grouped by any field, and print results as an aligned table or as JSON. Use clap for arguments and serde_json for parsing. Include unit tests and integration tests that run the binary on sample files.

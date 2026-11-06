@@ -1,0 +1,1 @@
+A static blog generator CLI in Python: it reads Markdown posts with YAML front matter (title, date, tags) from posts/, renders them with Jinja2 templates into site/, with an index page sorted by date, one page per tag, and an RSS feed. Commands: `blog build` and `blog serve` (a local preview server). Python 3.12 with uv; pytest tests.

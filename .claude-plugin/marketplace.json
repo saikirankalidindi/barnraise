@@ -1,0 +1,16 @@
+{
+  "name": "barnraise",
+  "owner": {
+    "name": "Saikiran Kalidindi"
+  },
+  "metadata": {
+    "description": "Barnraise: contract-first parallel task orchestration for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "barnraise",
+      "source": "./plugin",
+      "description": "Plan a project as parallel tasks, run them on subagents in git worktrees, verify, and merge."
+    }
+  ]
+}

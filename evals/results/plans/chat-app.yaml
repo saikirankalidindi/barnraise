@@ -1,0 +1,101 @@
+# Blueprint plan. Edit this file, then run /blueprint:plan --sync to validate it.
+# after: completion dependencies (start once those tasks are merged).
+# consumes: contract dependencies (start once the producing task publishes the contract).
+prompt: 'Real-time chat app in TypeScript: ws server with rooms, nicknames, in-memory history; Vite vanilla
+  TS client; pnpm workspace (server, client, shared); Vitest tests.'
+checks:
+- pnpm -r typecheck
+- pnpm test
+setup:
+- pnpm install
+contracts:
+- name: protocol-types
+  kind: types
+  description: 'Shared TS types in @chat/shared (packages/shared/src/index.ts): ClientMessage (join{room,nickname},
+    leave, say{text}, listRooms) and ServerMessage (rooms{rooms:{name,count}[]}, joined{room,history},
+    message{room,nickname,text,ts}, system{text}, error{message}), ChatMessage, plus parse/serialize helpers.'
+tasks:
+- key: T0
+  title: Workspace scaffolding and shared types
+  description: 'Create pnpm workspace: root package.json (scripts: test = ''pnpm -r test'', typecheck
+    = ''pnpm -r typecheck''; devDeps typescript, vitest, vite, tsx, ws, @types/ws, @types/node, jsdom),
+    pnpm-workspace.yaml (packages/*), tsconfig.base.json, and package skeletons packages/shared (@chat/shared),
+    packages/server (@chat/server, deps ws, @chat/shared workspace:*), packages/client (@chat/client,
+    vite, @chat/shared workspace:*), each with package.json (scripts test=''vitest run --passWithNoTests'',
+    typecheck=''tsc --noEmit''), tsconfig.json. Client vitest uses jsdom environment (vitest config in
+    packages/client/vitest.config.ts). Implement packages/shared/src/index.ts with the protocol types
+    and parseClientMessage/parseServerMessage/serialize helpers, plus a shared test. Run pnpm install
+    and commit the lockfile.'
+  acceptance:
+  - pnpm install
+  - pnpm -r typecheck
+  - pnpm --filter @chat/shared test
+  owns:
+  - package.json
+  - pnpm-workspace.yaml
+  - pnpm-lock.yaml
+  - tsconfig.base.json
+  - packages/shared/**
+  - packages/server/package.json
+  - packages/server/tsconfig.json
+  - packages/client/package.json
+  - packages/client/tsconfig.json
+  - packages/client/vitest.config.ts
+  - packages/client/vite.config.ts
+  produces:
+  - protocol-types
+  size: M
+- key: T1
+  title: WebSocket server
+  description: 'In packages/server/src: rooms.ts (pure RoomManager: join/leave, nickname uniqueness per
+    room, history capped at 100 messages, room listing), server.ts (createChatServer(port) using ws, handles
+    protocol messages from @chat/shared, broadcasts, returns close()), index.ts (starts on PORT env or
+    8080). Tests in packages/server/test/*.test.ts: RoomManager unit tests plus an integration test with
+    real ws clients on an ephemeral port.'
+  acceptance:
+  - pnpm --filter @chat/server test
+  - pnpm --filter @chat/server typecheck
+  owns:
+  - packages/server/src/**
+  - packages/server/test/**
+  after:
+  - T0
+  consumes:
+  - protocol-types
+  size: L
+- key: T2
+  title: Browser client
+  description: 'In packages/client: index.html, src/main.ts (wires DOM), src/state.ts (pure store reducing
+    ServerMessage into state: rooms, current room, messages, nickname), src/connection.ts (WebSocket wrapper
+    with injectable socket factory), src/ui.ts (render room list, message view, composer; escapes text),
+    src/style.css. Connects to ws://localhost:8080 (override via VITE_WS_URL). Vitest tests in packages/client/test/*.test.ts
+    for state reducer, connection with fake socket, and ui rendering under jsdom.'
+  acceptance:
+  - pnpm --filter @chat/client test
+  - pnpm --filter @chat/client typecheck
+  owns:
+  - packages/client/index.html
+  - packages/client/src/**
+  - packages/client/test/**
+  after:
+  - T0
+  consumes:
+  - protocol-types
+  size: L
+- key: T3
+  title: Integration, e2e test and README
+  description: Add root README.md with run instructions and root dev script docs (do not edit package.json;
+    document 'pnpm --filter @chat/server start' style commands only if scripts exist). Add packages/server/e2e/e2e.test.ts
+    that starts createChatServer on an ephemeral port and drives the client's connection.ts and state.ts
+    (imported by relative path) over real ws to verify join, message, and history flow. Ensure pnpm test
+    and typecheck pass for the whole repo.
+  acceptance:
+  - pnpm test
+  - pnpm -r typecheck
+  owns:
+  - README.md
+  - packages/server/e2e/**
+  after:
+  - T1
+  - T2
+  size: S

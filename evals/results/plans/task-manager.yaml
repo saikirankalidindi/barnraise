@@ -1,0 +1,114 @@
+# Blueprint plan. Edit this file, then run /blueprint:plan --sync to validate it.
+# after: completion dependencies (start once those tasks are merged).
+# consumes: contract dependencies (start once the producing task publishes the contract).
+prompt: 'Task manager: FastAPI + SQLite API, Typer CLI `tasks` over HTTP, static HTML/JS page served by
+  the API. Python 3.12, uv, pytest.'
+checks:
+- uv run pytest
+setup:
+- uv sync
+contracts:
+- name: tasks-api
+  kind: openapi
+  description: 'HTTP API: POST /tasks, GET /tasks?status=todo|doing|done, GET/PUT(PATCH)/DELETE /tasks/{id}.
+    Task JSON: id:int, title:str, description:str (default ''''), status:''todo''|''doing''|''done'' (default
+    ''todo''), due_date: ISO date string or null. 404 on missing id, 422 on validation errors. DELETE
+    returns 204. Static page served at GET / .'
+tasks:
+- key: T0
+  title: Scaffold project with uv, deps and package layout
+  description: 'Create pyproject.toml (Python 3.12, uv, package name taskmanager, src layout or top-level
+    packages `taskmanager`), dependencies: fastapi, uvicorn, typer, httpx; dev group: pytest, respx. Define
+    console script `tasks = taskmanager.cli:app`. Create empty package files: src/taskmanager/__init__.py,
+    api/ and cli.py stubs (cli.py with `import typer; app = typer.Typer()` and a placeholder callback;
+    src/taskmanager/main.py with `from fastapi import FastAPI; app = FastAPI()`), src/taskmanager/static/.gitkeep,
+    tests/__init__.py. Configure pytest (testpaths=tests) and build backend (hatchling) so the package
+    is importable. Run `uv sync` to produce uv.lock. Only T0 touches pyproject/uv.lock.'
+  acceptance:
+  - uv sync
+  - uv run python -c "import taskmanager.main, taskmanager.cli, fastapi, typer, httpx, respx"
+  owns:
+  - pyproject.toml
+  - uv.lock
+  - src/taskmanager/__init__.py
+  - src/taskmanager/main.py
+  - src/taskmanager/cli.py
+  - src/taskmanager/static/.gitkeep
+  - tests/__init__.py
+  - .python-version
+  size: S
+- key: T1
+  title: FastAPI + SQLite tasks API
+  description: 'Implement the tasks-api contract in src/taskmanager/api/ (__init__.py, db.py, models.py,
+    routes.py) using sqlite3 stdlib; DB path from env TASKS_DB (default tasks.db), tables created at startup/lazily;
+    use a per-request connection dependency so tests can override with a temp DB. Provide `create_app()`
+    in src/taskmanager/api/app.py returning FastAPI with the router. Pydantic models with Literal status
+    and optional date due_date; GET /tasks supports ?status filter. Tests in tests/test_api.py using TestClient
+    and tmp DB via monkeypatch of TASKS_DB: CRUD, filtering, 404, 422. Do not edit main.py (T3 wires it).'
+  acceptance:
+  - uv run pytest tests/test_api.py
+  owns:
+  - src/taskmanager/api/**
+  - tests/test_api.py
+  after:
+  - T0
+  produces:
+  - tasks-api
+  size: M
+- key: T2
+  title: Typer CLI client
+  description: 'Implement src/taskmanager/cli.py (T0 stub exists; you own it now) as Typer app with commands:
+    `add TITLE [--description] [--due YYYY-MM-DD] [--status]`, `list [--status]`, `show ID`, `update ID
+    [--title --description --status --due]`, `done ID`, `delete ID`. Uses httpx against base URL from
+    env TASKS_URL or --url option (default http://127.0.0.1:8000), per tasks-api contract. Print readable
+    output; on HTTP 404 print error and exit code 1; connection errors exit 1. Tests in tests/test_cli.py
+    using typer.testing.CliRunner and respx mocks.'
+  acceptance:
+  - uv run pytest tests/test_cli.py
+  owns:
+  - src/taskmanager/cli.py
+  - tests/test_cli.py
+  after:
+  - T0
+  consumes:
+  - tasks-api
+  size: M
+- key: T3
+  title: Static web page
+  description: 'Create src/taskmanager/static/index.html and static/app.js (no build step, no external
+    deps): lists tasks via fetch(''/tasks'') with a status filter dropdown, and a form (title, description,
+    status, due date) that POSTs to /tasks then refreshes list. Use element ids: task-list, task-form,
+    status-filter. Escape text when rendering (textContent). Tests in tests/test_page.py: assert files
+    exist, index.html references app.js and has those ids, app.js contains fetch(''/tasks'') and POST.
+    Do not test serving (T4 does).'
+  acceptance:
+  - uv run pytest tests/test_page.py
+  owns:
+  - src/taskmanager/static/index.html
+  - src/taskmanager/static/app.js
+  - tests/test_page.py
+  after:
+  - T0
+  consumes:
+  - tasks-api
+  size: S
+- key: T4
+  title: Wire app, serve page, end-to-end tests
+  description: 'Update src/taskmanager/main.py so `app = create_app()` from taskmanager.api.app, serving
+    GET / as static/index.html and /static mounted to the static dir (app.js reachable at /static/app.js;
+    index.html should reference it accordingly - adjust path in tests, coordinate by checking the file).
+    Add README.md with run instructions (uv run uvicorn taskmanager.main:app, uv run tasks ...). Add tests/test_e2e.py:
+    TestClient GET / returns HTML containing task-list and script reference, script is served, and the
+    CLI (CliRunner) against the app by routing httpx via respx or an ASGI-bridged mock hitting TestClient.
+    Run full `uv run pytest`.'
+  acceptance:
+  - uv run pytest
+  owns:
+  - src/taskmanager/main.py
+  - README.md
+  - tests/test_e2e.py
+  after:
+  - T1
+  - T2
+  - T3
+  size: M

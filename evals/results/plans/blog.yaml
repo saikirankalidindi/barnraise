@@ -1,0 +1,102 @@
+# Blueprint plan. Edit this file, then run /blueprint:plan --sync to validate it.
+# after: completion dependencies (start once those tasks are merged).
+# consumes: contract dependencies (start once the producing task publishes the contract).
+prompt: 'Static blog generator CLI in Python 3.12 with uv: Markdown posts with YAML front matter -> Jinja2
+  -> site/, index by date, tag pages, RSS; `blog build` and `blog serve`.'
+checks:
+- uv run pytest
+- uv run ruff check .
+setup:
+- uv sync
+contracts:
+- name: post-model
+  kind: types
+  description: 'blog/models.py: frozen dataclass Post(title:str, date:datetime.date, tags:list[str], slug:str,
+    html:str, summary:str). Function load_posts(posts_dir: Path) -> list[Post] in blog/posts.py, sorted
+    by date descending.'
+- name: builder-api
+  kind: types
+  description: 'blog/builder.py: build(posts_dir: Path, site_dir: Path, templates_dir: Path|None=None)
+    -> None writing site/index.html, site/posts/<slug>.html, site/tags/<tag>.html, site/rss.xml.'
+tasks:
+- key: T0
+  title: Scaffold project
+  description: 'Create pyproject.toml (name blog, Python>=3.12, hatchling build, deps: markdown, pyyaml,
+    jinja2; dev deps: pytest, ruff; script entry `blog = blog.cli:main`), uv.lock, blog/__init__.py, blog/models.py
+    with the Post dataclass (title, date: datetime.date, tags: list[str], slug, html, summary), a placeholder
+    blog/cli.py with main() that does nothing yet, tests/__init__.py, ruff config in pyproject. Run uv
+    sync to produce lockfile. Add a trivial passing test tests/test_smoke.py.'
+  acceptance:
+  - uv run pytest tests/test_smoke.py
+  - uv run ruff check .
+  owns:
+  - pyproject.toml
+  - uv.lock
+  - blog/__init__.py
+  - blog/models.py
+  - blog/cli.py
+  - tests/__init__.py
+  - tests/test_smoke.py
+  - README.md
+  produces:
+  - post-model
+  size: S
+- key: T1
+  title: Post parsing
+  description: 'Implement blog/posts.py: parse a Markdown file with YAML front matter (--- delimited;
+    title, date, tags) using pyyaml and markdown; slug from filename stem; summary = first paragraph plain
+    text; load_posts(posts_dir) returns Posts sorted by date descending; raise a clear ValueError for
+    missing title/date. Tests in tests/test_posts.py using tmp_path.'
+  acceptance:
+  - uv run pytest tests/test_posts.py
+  owns:
+  - blog/posts.py
+  - tests/test_posts.py
+  consumes:
+  - post-model
+  size: M
+- key: T2
+  title: Templates and builder
+  description: Implement blog/builder.py build(posts_dir, site_dir, templates_dir=None) using blog.posts.load_posts
+    (consumed contract; for tests, monkeypatch or write real post files — tests may write sample markdown
+    files and rely on T1 existing at merge, so keep tests using a stub via monkeypatch of blog.builder.load_posts).
+    Jinja2 templates in blog/templates/ (base.html, index.html, post.html, tag.html, rss.xml) packaged
+    with the project. Output site/index.html (posts by date desc), site/posts/<slug>.html, site/tags/<tag>.html
+    per tag, site/rss.xml (valid RSS 2.0, escaped). Clean/recreate site_dir. Import load_posts at module
+    top as `from blog.posts import load_posts`; if blog/posts.py does not yet exist the import must still
+    work at merge time because T1 is merged first (this task is after T1).
+  acceptance:
+  - uv run pytest tests/test_builder.py
+  owns:
+  - blog/builder.py
+  - blog/templates/**
+  - tests/test_builder.py
+  after:
+  - T1
+  produces:
+  - builder-api
+  consumes:
+  - post-model
+  size: M
+- key: T3
+  title: CLI and serve, end-to-end
+  description: 'Implement blog/cli.py with argparse: `blog build [--posts posts] [--site site]` calling
+    blog.builder.build, and `blog serve [--site site] [--port 8000] [--host 127.0.0.1]` which builds then
+    serves site/ using http.server (SimpleHTTPRequestHandler with directory=site); factor a make_server(site,
+    host, port) function for testing. Add example posts in posts/ (2-3 with tags). Tests in tests/test_cli.py:
+    build via main([...]) on tmp dirs, assert outputs exist; serve test starts make_server on port 0 in
+    a thread and fetches index.html. Also tests/test_e2e.py running the full build on example posts. Document
+    usage in README (README owned by T0, so skip README edits).'
+  acceptance:
+  - uv run pytest tests/test_cli.py tests/test_e2e.py
+  owns:
+  - blog/cli.py
+  - posts/**
+  - tests/test_cli.py
+  - tests/test_e2e.py
+  after:
+  - T0
+  - T2
+  consumes:
+  - builder-api
+  size: M

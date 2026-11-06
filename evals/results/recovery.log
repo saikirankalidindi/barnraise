@@ -1,0 +1,126 @@
+repo: /tmp/bp-recovery-vpujqokw
+[    0.3s] USER: /blueprint:init checks: none yet; agents: 3
+[    2.7s] TOOL ToolSearch {"query": "blueprint status init_project", "max_results": "5"}
+[    4.2s] TOOL mcp__plugin_blueprint_blueprint__status {}
+[    5.6s] CLAUDE: Arguments settle it: no checks yet, 3 agents.
+[    5.9s] TOOL mcp__plugin_blueprint_blueprint__init_project {"checks": "[]", "agent_limit": "3"}
+[    7.8s] CLAUDE: Blueprint is set up for this repo.
+
+- **Integration branch:** `blueprint/integration`, newly created from base commit `329fd73`.
+- **Checks:** none yet. The plan will supply them.
+- **Agent limit:** 3 workers at once.
+- **Budget:** no cap.
+- **Worker model:** I didn't set one, so it uses the default (`inherit`).
+- **`.gitignore`:** it now ignores `.blueprint/` except `plan.yaml`.
+
+Next step: `/blueprint:plan <what you want built>`.
+[    7.8s] turn ended (success); session cost so far $0.102
+[    7.8s] USER: /blueprint:plan A small Python package `geo` (src layout, uv, pytest) with three independent modules, each with its own test file: geo/distance.py (haversine distance between two lat/lon points), geo/
+[   10.3s] TOOL mcp__plugin_blueprint_blueprint__status {}
+[   11.0s] TOOL Bash {"command": "ls -la /tmp/bp-recovery-vpujqokw; git -C /tmp/bp-recovery-vpujqokw log --oneline", "description": "List repo top-level files and commits"}
+[   14.7s] TOOL Agent {"subagent_type": "blueprint:planner", "description": "Plan geo package", "run_in_background": "False"}
+[   26.3s] TOOL mcp__plugin_blueprint_blueprint__get_plan {}
+[   30.9s] CLAUDE: The plan is valid, version 1. It's stored at `.blueprint/plan.yaml`.
+
+| Key | Title | Size | After | Consumes | Owns |
+|---|---|---|---|---|---|
+| T0 | Scaffold package | S | none | none | `pyproject.toml`, `uv.lock`, `src/geo/__init__.py`, `tests/.gitkeep` |
+| T1 | distance module | S | T0 | `geo-api` (from T0) | `src/geo/distance.py`, `tests/test_distance.py` |
+| T2 | bearing module | S | T0 | `geo-api` (from T0) | `src/geo/bearing.py`, `tests/test_bearing.py` |
+| T3 | midpoint module | S | T0 | `geo-api` (from T0) | `src/geo/midpoint.py`, `tests/test_midpoint.py` |
+
+**Contract:** `geo-api` 
+[   30.9s] turn ended (success); session cost so far $0.279
+[    0.3s] USER: /blueprint:run
+[    3.5s] TOOL ToolSearch {"query": "blueprint start_run", "max_results": "10"}
+[    5.1s] TOOL mcp__plugin_blueprint_blueprint__start_run {}
+[    6.4s] CLAUDE: Plan v1: 4 tasks, agent limit 3, no budget cap. Critical path is T0 → T3.
+[    6.4s] TOOL mcp__plugin_blueprint_blueprint__next_actions {}
+[   12.0s] TOOL Agent {"subagent_type": "blueprint:worker", "description": "Blueprint T0: Scaffold package", "run_in_background": "True"}
+[   12.1s] TOOL mcp__plugin_blueprint_blueprint__wait_for_change {"cursor": "0"}
+[   16.3s] TOOL mcp__plugin_blueprint_blueprint__next_actions {}
+[   17.4s] CLAUDE: T0 running · 3 pending · $0 spent
+[   17.5s] TOOL mcp__plugin_blueprint_blueprint__wait_for_change {"cursor": "7"}
+[   23.6s] TOOL mcp__plugin_blueprint_blueprint__next_actions {}
+[   29.3s] TOOL Agent {"subagent_type": "blueprint:worker", "description": "Blueprint T1: distance module", "run_in_background": "True"}
+[   33.8s] TOOL Agent {"subagent_type": "blueprint:worker", "description": "Blueprint T2: bearing module", "run_in_background": "True"}
+SIGKILLed 7 processes
+killed session 1 with task states: {'T1': 'in_progress', 'T0': 'done', 'T3': 'assigned', 'T2': 'in_progress'}
+task states 3 s after the kill: {'T1': 'in_progress', 'T0': 'done', 'T3': 'assigned', 'T2': 'in_progress'}
+commits on in-progress branches at kill time: {'T1': '0', 'T2': '0'}
+[    0.3s] USER: /blueprint:run --recover
+[    2.1s] TOOL ToolSearch {"query": "blueprint start_run next_actions", "max_results": "10"}
+[    3.4s] TOOL mcp__plugin_blueprint_blueprint__start_run {"force_recover": "True"}
+[    4.9s] CLAUDE: Plan v1: 4 tasks, agent limit 3, no budget. Recovered T1, T2 and T3. Critical path: T0 → T3.
+[    4.9s] TOOL mcp__plugin_blueprint_blueprint__next_actions {}
+[   10.6s] TOOL Agent {"description": "Blueprint T1: distance module", "subagent_type": "blueprint:worker", "run_in_background": "True"}
+[   15.2s] TOOL Agent {"description": "Blueprint T2: bearing module", "subagent_type": "blueprint:worker", "run_in_background": "True"}
+[   19.9s] TOOL Agent {"description": "Blueprint T3: midpoint module", "subagent_type": "blueprint:worker", "run_in_background": "True"}
+[   21.2s] CLAUDE: T0 done · T1, T2, T3 running · 0.11 spent
+[   21.3s] TOOL mcp__plugin_blueprint_blueprint__wait_for_change {"cursor": "17"}
+[   22.4s] TOOL mcp__plugin_blueprint_blueprint__next_actions {}
+[   23.6s] CLAUDE: T0, T1 done · T2, T3 running · $0.11 spent
+[   23.7s] TOOL mcp__plugin_blueprint_blueprint__wait_for_change {"cursor": "25"}
+[   26.7s] TOOL mcp__plugin_blueprint_blueprint__next_actions {}
+[   28.4s] CLAUDE: T0, T1, T2 done · T3 running · $0.22 spent
+[   28.4s] TOOL mcp__plugin_blueprint_blueprint__wait_for_change {"cursor": "28"}
+[   32.6s] TOOL mcp__plugin_blueprint_blueprint__next_actions {}
+[   34.6s] CLAUDE: All 4 tasks are merged into `blueprint/integration`, and the project check (`uv run pytest`) passes. Total spend was $0.33.
+
+Merges:
+- `58174e7` T3 (midpoint module)
+- `3d2fbbf` T2 (bearing module)
+- `1bf1e82` T1 (distance module)
+- `1d96530` T0 (Scaffold package)
+
+To review:
+- `git log --first-parent blueprint/integration`
+- `git diff 329fd73e8e53..blueprint/integration`
+
+Merge it into your branch when you're happy with it.
+[   34.6s] turn ended (success); session cost so far $0.439
+{
+  "killed_with": {
+    "T1": "in_progress",
+    "T0": "done",
+    "T3": "assigned",
+    "T2": "in_progress"
+  },
+  "commits_on_branches_at_kill": {
+    "T1": "0",
+    "T2": "0"
+  },
+  "recovered": [
+    "T1",
+    "T3",
+    "T2"
+  ],
+  "resume_wall_s": 37,
+  "final_tasks": {
+    "T1": [
+      "done",
+      0
+    ],
+    "T0": [
+      "done",
+      0
+    ],
+    "T3": [
+      "done",
+      0
+    ],
+    "T2": [
+      "done",
+      0
+    ]
+  },
+  "run_status": "done",
+  "verify": {
+    "ref": "blueprint/integration",
+    "uv_sync_ok": true,
+    "pytest_ok": true,
+    "pytest_tail": "warning: `VIRTUAL_ENV=~/.cache/uv/builds-v0/.tmpDq2G8u` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead\n.............                                                            [100%]\n13 passed in 0.02s",
+    "files": 11,
+    "python_files": 7
+  }
+}
