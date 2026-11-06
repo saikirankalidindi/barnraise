@@ -6,6 +6,7 @@ plan. Once you approve it, Barnraise runs the tasks on several Claude workers at
 git worktree, and verifies and merges each finished task into one integration branch for you to
 review.
 
+
 ```text
 /barnraise:init
 /barnraise:plan A FastAPI task manager with SQLite, a Typer CLI client, and pytest tests
