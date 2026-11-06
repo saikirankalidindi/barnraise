@@ -25,9 +25,8 @@ tree. Barnraise only writes to `barnraise/*` branches and to `.barnraise/` in yo
 - **Claude Code**, logged in however you normally use it. Barnraise uses your existing Claude Code
   session and never asks for an API key.
 - **git**, and a repository with at least one commit.
-- **[uv](https://docs.astral.sh/uv/)**, which runs Barnraise's local server. Install it with
-  `curl -LsSf https://astral.sh/uv/install.sh | sh` (or `brew install uv`).
-- **python3** (3.10 or newer) on your `PATH`, used by Barnraise's hooks.
+- **python3** (3.10 or newer) on your `PATH`. Barnraise's server and hooks run on the Python standard
+  library alone, so nothing is installed.
 - Whatever your project itself needs (Node, Rust, Go, …), since workers run its tests.
 
 ## 2. Install
@@ -48,8 +47,7 @@ claude --plugin-dir /path/to/barnraise/plugin
 ```
 
 Check that it loaded: in Claude Code, type `/barnraise:` and you should see `init`, `plan`, `run`,
-`status`, `pause`, `cancel`, and `replan`. The first command in a session takes a few seconds longer
-while Barnraise prepares its environment.
+`status`, `pause`, `cancel`, and `replan`. 
 
 Update with `claude plugin update barnraise@barnraise`, and remove with
 `claude plugin uninstall barnraise@barnraise`.

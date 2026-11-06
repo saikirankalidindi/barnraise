@@ -13,18 +13,17 @@ import shutil
 from collections.abc import Callable
 from typing import Any, Literal
 
-from mcp.server.mcpserver import MCPServer
-
 from barnraise import __version__
 from barnraise import plan as planmod
 from barnraise.engine import Engine, EngineError
+from barnraise.mcp_stdio import StdioServer
 from barnraise.plan import Issue, Plan
 from barnraise.project import ProjectError, detect_checks
 from barnraise.project import init_project as do_init
 from barnraise.store import Store, project_dir
 from barnraise.validate import analyse, validate
 
-mcp = MCPServer(
+mcp = StdioServer(
     name="barnraise",
     version=__version__,
     instructions="Barnraise turns a project prompt into a validated, contract-first plan of "
@@ -314,4 +313,4 @@ def complete_task(key: str, token: str, summary: str) -> dict[str, Any]:
 
 
 def main() -> None:
-    mcp.run("stdio")
+    mcp.serve()

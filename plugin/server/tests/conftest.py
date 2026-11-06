@@ -60,7 +60,7 @@ def sample(**overrides: Any) -> dict[str, Any]:
 
 
 def plan(**overrides: Any) -> Plan:
-    return Plan.model_validate(sample(**overrides))
+    return Plan.from_dict(sample(**overrides))
 
 
 def git(root: Path, *args: str) -> str:

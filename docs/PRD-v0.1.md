@@ -21,7 +21,7 @@ Build milestone by milestone (section 6) and stop after each for review. Treat e
 | How do agents "talk"? | Free-form chat is slow and drifts | **Contract-first** (same as Agent Canvas). Producers publish versioned contracts; dependents read them. Short typed messages (question, notice, blocker), capped per task |
 | When does execution start? | A bad plan wastes every run | **Only after the user approves the plan** (`/barnraise:run`) |
 | Where does state live? | Users expect project state with the project | **In the repo:** `.barnraise/plan.yaml` (committed) and `.barnraise/state.db` plus logs (gitignored) |
-| Runtime for the MCP server | Plugin users must be able to run it | **Python 3.12 via `uv`**, matching Agent Canvas so planner, scheduler, and validator code can be reused. Revisit (Node) if `uv` turns out to be a real adoption barrier |
+| Runtime for the MCP server | Plugin users must be able to run it | **Python 3.10+ standard library, run as `python3`**, with PyYAML vendored as source. *Built:* the first version used `uv` with the `mcp` and `pydantic` packages; the plugin directory blocks commands that install packages, so the MCP protocol and plan schema were reimplemented in the standard library |
 | Agent teams? | Claude Code has an experimental teams feature with a shared task list and mailboxes | **Not used in v0.1.** It is experimental, off by default, and interactive-only. Revisit once it is stable |
 
 The two risks are the same as in Agent Canvas. Technically, parallel agents writing the same code is the hard part; worktrees, owned paths, and one integrator contain it. On the product side, plan quality decides everything downstream, so the plan is validated, shown, and approved before any worker starts.

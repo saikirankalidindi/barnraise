@@ -32,7 +32,7 @@ Or from a shell:
 claude plugin install barnraise --marketplace saikirankalidindi/barnraise
 ```
 
-Requires Claude Code, `git`, [`uv`](https://docs.astral.sh/uv/), and `python3` 3.10 or newer.
+Requires Claude Code, `git`, and `python3` 3.10 or newer on your `PATH` (macOS and Linux; on Windows, Python must be reachable as `python3`). Nothing else is installed.
 
 ## Commands
 
@@ -52,12 +52,13 @@ any service of its own, collects no telemetry, reads no credentials, and does no
 permission settings.
 
 **A local MCP server.** Claude Code starts it with
-`uv run --frozen --project ${CLAUDE_PLUGIN_ROOT}/server barnraise-mcp`. On first start, `uv`
-downloads the server's Python dependencies from PyPI (`mcp`, `pyyaml`, and theirs), at the exact
-versions pinned in `server/uv.lock`, into the plugin's data directory. The server holds the plan
-and run state and makes no network requests.
+`python3 ${CLAUDE_PLUGIN_ROOT}/server/barnraise_mcp.py`. It uses only the Python standard library
+plus a vendored copy of PyYAML's pure-Python source (`server/src/barnraise/_vendor/yaml`, MIT), so
+nothing is downloaded or installed. The server holds the plan and run state and makes no network
+requests.
 
-**Hooks.** `hooks/barnraise_hook.py` (Python standard library only) runs on `PreToolUse` (file
+**Hooks.** `python3 ${CLAUDE_PLUGIN_ROOT}/hooks/barnraise_hook.py` (Python standard library only)
+runs on `PreToolUse` (file
 edits, Bash, and Barnraise's `claim_task`), `PostToolUse`, and `SubagentStop` for
 `barnraise:worker`. It exits immediately in any project without a `.barnraise/state.db`, and it only
 acts on Barnraise's own worker subagents. It:

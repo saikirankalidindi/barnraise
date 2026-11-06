@@ -173,7 +173,7 @@ class Store:
         with self.tx() as c:
             cur = c.execute(
                 "INSERT INTO plan_version (created_at, source, plan) VALUES (?, ?, ?)",
-                (time.time(), source, plan.model_dump_json()),
+                (time.time(), source, plan.to_json()),
             )
             version = int(cur.lastrowid or 0)
             self.log("plan.saved", conn=c, version=version, source=source, tasks=len(plan.tasks))
@@ -184,7 +184,7 @@ class Store:
             row = c.execute(
                 "SELECT plan FROM plan_version WHERE version = ?", (version,)
             ).fetchone()
-        return Plan.model_validate_json(row[0]) if row else None
+        return Plan.from_json(row[0]) if row else None
 
     def latest_plan(self) -> tuple[int, Plan] | None:
         if not self.initialized:
@@ -193,7 +193,7 @@ class Store:
             row = c.execute(
                 "SELECT version, plan FROM plan_version ORDER BY version DESC LIMIT 1"
             ).fetchone()
-        return (int(row[0]), Plan.model_validate_json(row[1])) if row else None
+        return (int(row[0]), Plan.from_json(row[1])) if row else None
 
     def approved_plan(self) -> tuple[int, Plan] | None:
         version = self.config().get("approved_version")

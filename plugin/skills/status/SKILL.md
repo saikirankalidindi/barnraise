@@ -1,6 +1,6 @@
 ---
 name: status
-description: Show Barnraise's status for this project: plan, tasks by status, running workers, contracts, messages, spend, and failures. Read-only.
+description: "Show Barnraise's status for this project: plan, tasks by status, running workers, contracts, messages, spend, and failures. Read-only."
 ---
 
 Call the barnraise `status` tool and summarise it without changing anything:

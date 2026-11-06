@@ -2,7 +2,6 @@
 
 import json
 import subprocess
-import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -49,8 +48,7 @@ def detect_checks(root: Path) -> list[str]:
     if pyproject.exists():
         try:
             text = pyproject.read_text()
-            tomllib.loads(text)
-        except (tomllib.TOMLDecodeError, OSError):
+        except OSError:
             text = ""
         if "pytest" in text or (root / "tests").is_dir():
             checks.append("uv run pytest" if (root / "uv.lock").exists() else "pytest")

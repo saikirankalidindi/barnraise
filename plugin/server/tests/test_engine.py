@@ -34,7 +34,7 @@ def make_plan(
     contracts: list[dict[str, Any]] | None = None,
     checks: list[str] | None = None,
 ) -> Plan:
-    return Plan.model_validate(
+    return Plan.from_dict(
         {
             "prompt": "test project",
             "checks": checks or ["true"],

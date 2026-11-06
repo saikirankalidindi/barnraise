@@ -1,15 +1,9 @@
 [project]
 name = "barnraise"
-version = "0.1.0"
+version = "0.1.1"
 description = "Barnraise MCP server: plan, scheduler, contracts, integrator"
-requires-python = ">=3.12"
-dependencies = [
-    "mcp>=2.3.0",
-    "pyyaml>=6.0.3",
-]
-
-[project.scripts]
-barnraise-mcp = "barnraise.server:main"
+requires-python = ">=3.10"
+dependencies = []  # standard library only at runtime; PyYAML is vendored
 
 [build-system]
 requires = ["hatchling"]
@@ -24,7 +18,6 @@ dev = [
     "pytest-asyncio>=1",
     "ruff>=0.15",
     "mypy>=1.19",
-    "types-pyyaml>=6.0.12.20261103",
 ]
 
 [tool.pytest.ini_options]
@@ -34,7 +27,8 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py310"
+extend-exclude = ["src/barnraise/_vendor"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "ASYNC"]
@@ -44,3 +38,9 @@ ignore = ["E501"]
 [tool.mypy]
 strict = true
 files = ["src", "tests"]
+exclude = ["src/barnraise/_vendor/"]
+
+[[tool.mypy.overrides]]
+module = ["barnraise._vendor.*"]
+follow_imports = "skip"
+ignore_missing_imports = true

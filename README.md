@@ -33,7 +33,7 @@ works, recovery, and troubleshooting.
 
 ## Requirements
 
-Claude Code, `git`, [`uv`](https://docs.astral.sh/uv/), and `python3` 3.10 or newer.
+Claude Code, `git`, and `python3` 3.10 or newer. Nothing else is installed.
 
 ## Install
 
@@ -71,7 +71,7 @@ From `evals/`, against real Claude Code (Sonnet):
 
 ## How it works
 
-A local MCP server (Python, run with `uv`) owns all decisions and state: plan validation, a
+A local MCP server (Python standard library only) owns all decisions and state: plan validation, a
 deterministic scheduler, contracts, messages, and the integrator. Your Claude Code session is a thin
 driver. It asks the server what to do next and does exactly that: start background
 `barnraise:worker` subagents with the briefs the server writes, wait, and report. Plugin hooks

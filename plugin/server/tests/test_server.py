@@ -14,7 +14,7 @@ def test_tools_need_init(repo: Path) -> None:
 
 def test_propose_then_edit_and_sync(repo: Path) -> None:
     server.init_project(checks=["pnpm test"])
-    bad = server.propose_plan(Plan.model_validate(sample(checks=[])))
+    bad = server.propose_plan(Plan.from_dict(sample(checks=[])))
     assert bad["ok"] is False and bad["errors"][0]["code"] == "no_checks"
     assert server.get_plan()["ok"] is False  # nothing stored
 
