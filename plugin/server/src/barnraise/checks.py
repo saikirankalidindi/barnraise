@@ -29,15 +29,15 @@ def tail(text: str) -> str:
 def run(commands: list[str], cwd: Path, *, stop_on_failure: bool = True) -> list[CheckResult]:
     """Run commands in order with a shell, by default stopping at the first failure."""
     results = []
-    env = {**os.environ, "CI": "1", "BARNRAISE": "1"}
     for cmd in commands:
         started = time.monotonic()
         try:
+            # The command inherits the environment as usual; Barnraise never reads or copies
+            # it. CI=1 keeps test runners non-interactive.
             res = subprocess.run(
-                cmd,
+                f"export CI=1 BARNRAISE=1\n{cmd}",
                 shell=True,
                 cwd=cwd,
-                env=env,
                 capture_output=True,
                 text=True,
                 timeout=CHECK_TIMEOUT_S,

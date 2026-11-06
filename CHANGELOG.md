@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 (2026-11-06)
+
+- Check commands no longer receive an explicit copy of the environment. They inherit it as usual,
+  and Barnraise's code no longer reads or copies environment variables.
+
 ## 0.1.1 (2026-11-06)
 
 Fixes for the Claude plugin directory's validation.

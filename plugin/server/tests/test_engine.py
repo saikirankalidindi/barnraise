@@ -393,3 +393,10 @@ def test_events_jsonl_mirrors_the_log(repo: Path) -> None:
             "merge.result", "task.done"} <= set(types)  # fmt: skip
     seqs = [json.loads(line)["seq"] for line in lines]
     assert seqs == sorted(seqs)
+
+
+def test_checks_run_non_interactively_without_copying_the_environment(tmp_path: Path) -> None:
+    from barnraise import checks
+
+    [r] = checks.run(['test "$CI" = 1 && test "$BARNRAISE" = 1 && test -n "$PATH"'], tmp_path)
+    assert r.ok and r.command.startswith("test")  # reported as written, without the prefix

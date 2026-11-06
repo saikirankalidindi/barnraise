@@ -74,7 +74,8 @@ acts on Barnraise's own worker subagents. It:
 and `barnraise/*`, and to merge finished tasks into `barnraise/integration`. It never pushes and never
 touches your current branch. It also runs the setup and check commands written in the plan you
 approve (for example `uv sync`, `pnpm install`, `uv run pytest`), which may install your project's
-dependencies.
+dependencies. Those commands inherit your shell environment as usual; Barnraise itself never reads
+or copies your environment variables.
 
 **Workers.** Tasks run as Claude Code subagents in your session, using your Claude account and plan
 limits. Like Claude Code itself, a worker's Bash commands are not sandboxed.
